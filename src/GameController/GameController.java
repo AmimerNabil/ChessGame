@@ -12,6 +12,7 @@ import board.Position;
 import java.util.ArrayList;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
+import javafx.scene.input.MouseDragEvent;
 import javafx.scene.input.MouseEvent;
 
 /**
@@ -61,14 +62,21 @@ public class GameController {
     private Piece bishopW1;
     private Piece bishopW2;
 
+    //moving Variables : reinitialized every time the mouse is clicked
+    private double initialX;
+    private double initialY;
+    private Piece movingPiece;
+    private double initialTranslateX;
+    private double initialTranslateY;
+
     public GameController(Board board) {
         this.board = board;
+        
         createBlackPieces();
         createWhitePieces();
     }
-    
+
     //next two methods are only used to create and insert the pieces on the board
-    
     private void createBlackPieces() {
         blackPawn1 = new Piece(1, 2, Type.PAWN, true, this.board);
         blackPawn2 = new Piece(2, 2, Type.PAWN, true, this.board);
@@ -108,65 +116,111 @@ public class GameController {
         knightW2 = new Piece(7, 8, Type.KNIGHT, false, board);
         kingW = new Piece(5, 8, Type.KING, false, board);
     }
-    
+
     // used to get what position the mouse has been clicked on and find if there is a piece on that board position
-    private Position getClickPositionPosition(double x , double y){
+    private Position getClickPositionPosition(double x, double y) {
         int counterX = 1;
         int counterY = 1;
-        
-        if(x < board.getChessBoardOffsetX() || x > board.getChessBoardOffsetX() + 800
-                || y < board.getChessBoardOffsetY() || y > board.getChessBoardOffsetY() + 800)
-        {
+
+        if (x < board.getChessBoardOffsetX() || x > board.getChessBoardOffsetX() + 800
+                || y < board.getChessBoardOffsetY() || y > board.getChessBoardOffsetY() + 800) {
             Position pos = new Position(800, 800);
             System.out.println("Clicked Outside of the board");
             return pos;
         }
-        
-        for(int i = 1; i < 8; i++){
-            if(x > board.getTileSize()*i + board.getChessBoardOffsetX()) counterX++;
-            else break;
-        }
-        for(int i = 1; i < 8; i++){
-            if(y > board.getTileSize()*i + board.getChessBoardOffsetY()) counterY++;
-            else break;
-        }
-        Position pos = new Position(counterX, counterY);
-        System.out.println(pos);
-        return pos;
-    }
-    
-    
-    private void isPieceOnPosition(Position pos){
-        for(Piece p : getAllPiecesOnBoard()){
-            if(p.getPos().equals(pos)){
-                System.out.println(p);
+
+        for (int i = 1; i < 8; i++) {
+            if (x > board.getTileSize() * i + board.getChessBoardOffsetX()) {
+                counterX++;
+            } else {
                 break;
             }
         }
-    }    
-    
-    private ArrayList<Piece> getAllPiecesOnBoard(){
+        for (int i = 1; i < 8; i++) {
+            if (y > board.getTileSize() * i + board.getChessBoardOffsetY()) {
+                counterY++;
+            } else {
+                break;
+            }
+        }
+        Position pos = new Position(counterX, counterY);
+        return pos;
+    }
+
+    private Piece isPieceOnPosition(Position pos) {
+        for (Piece p : getAllPiecesOnBoard()) {
+            if (p.getPos().equals(pos)) {
+                return p;
+            }
+        }
+        return null;
+    }
+
+    private ArrayList<Piece> getAllPiecesOnBoard() {
         ArrayList<Piece> pieces = new ArrayList<>();
-        
-        for(Node n : board.getChildren()){
-            if(n instanceof Piece){
+
+        for (Node n : board.getChildren()) {
+            if (n instanceof Piece) {
                 pieces.add((Piece) n);
             }
         }
         return pieces;
     }
-            
-    public MousePressedController getMouseController(){
+    
+
+
+    public MousePressedController getMouseController() {
         return new MousePressedController();
     }
-    
+
+
     //creating classes that will handle the events of mouse pressing
-    private class MousePressedController implements EventHandler<MouseEvent>{
+    private class MousePressedController implements EventHandler<MouseEvent> {
         @Override
         public void handle(MouseEvent e) {
             Position pos = getClickPositionPosition(e.getX(), e.getY());
-            isPieceOnPosition(pos);
+            if (isPieceOnPosition(pos) != null) {
+                movingPiece = isPieceOnPosition(pos);
+                initialX = movingPiece.getPosX() + 20;
+                initialY = movingPiece.getPosY();
+
+                initialTranslateX = movingPiece.getTranslateX();
+                initialTranslateY = movingPiece.getTranslateY();
+            }else{
+                movingPiece = null;
+            }
         }
-        
     }
+
+    public void dragEvent(MouseEvent e){
+        if(movingPiece != null){
+            double offsetX = e.getX() - initialX;
+            double offsetY = e.getY() - initialY;
+            double newTranslateX = initialTranslateX + offsetX;
+            double newTranslateY = initialTranslateY + offsetY;
+
+            for(Piece p: getAllPiecesOnBoard()){
+                if(movingPiece.equals(p)){
+                    p.setTranslateX(newTranslateX);
+                    p.setTranslateY(newTranslateY);
+                }
+            }
+        }
+    }
+    
+    public void dragReleased(MouseEvent e){
+        if(movingPiece != null){
+           Position pos = getClickPositionPosition(e.getX(), e.getY());
+           for(Piece p: getAllPiecesOnBoard()){
+               if(movingPiece.equals(p)){
+                   p.setPos(pos);
+                   System.out.println(p);
+                   break;
+               }
+           }           
+        }
+    }
+    
+    
+    //class ends
 }

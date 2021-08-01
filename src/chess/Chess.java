@@ -31,7 +31,9 @@ public class Chess extends Application{
     public void start(Stage stage)throws FileNotFoundException{
        
         Scene boardScene = new Scene(createBoard());
-        boardScene.setOnMouseClicked(controller.getMouseController());
+        boardScene.setOnMousePressed(controller.getMouseController());
+        boardScene.setOnMouseDragged(event -> controller.dragEvent(event));
+        boardScene.setOnMouseReleased(event -> controller.dragReleased(event));
         stage.setScene(boardScene);
         stage.setResizable(false);
         stage.setTitle("Chess");

@@ -9,6 +9,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import board.Board;
 import board.Position;
+import java.util.Objects;
 
 /**
  *
@@ -22,6 +23,8 @@ public class Piece extends ImageView{
     private Image image, imageAfter;
     private Type type;
     
+    private static int ID;
+    private int id;
     //if false = white, if true = black
     private boolean team;
     
@@ -54,6 +57,9 @@ public class Piece extends ImageView{
         setLayoutX(this.posX);
         setLayoutY(this.posY);
         board.insertElement(this);
+        
+        ID++;
+        id = ID;
     }
     
     @Override
@@ -62,8 +68,44 @@ public class Piece extends ImageView{
         if(team) color = "black";
         else color = "white";
         
-        return color + " " + type.toString().toLowerCase() + " at position " + getPos();
+        return color + " " + type.toString().toLowerCase() + " at position " + getPos() + ""
+                + " with ID : " + id;
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 59 * hash + Objects.hashCode(this.type);
+        hash = 59 * hash + this.id;
+        hash = 59 * hash + (this.team ? 1 : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Piece other = (Piece) obj;
+        if (this.id != other.id) {
+            return false;
+        }
+        if (this.team != other.team) {
+            return false;
+        }
+        if (this.type != other.type) {
+            return false;
+        }
+        return true;
+    }
+    
+    
    
     public String getPath() {
         return path;
@@ -127,6 +169,22 @@ public class Piece extends ImageView{
 
     public void setPos(Position pos) {
         this.ChessBoardPos = pos;
+    }
+
+    public static int getID() {
+        return ID;
+    }
+
+    public static void setID(int ID) {
+        Piece.ID = ID;
+    }
+
+    public int getPieceId() {
+        return id;
+    }
+
+    public void setPieceId(int id) {
+        this.id = id;
     }
     
     
