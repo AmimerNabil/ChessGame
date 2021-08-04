@@ -71,10 +71,11 @@ public class GameController {
 
     public GameController(Board board) {
         this.board = board;
-        
+
         createBlackPieces();
         createWhitePieces();
     }
+   
 
     //next two methods are only used to create and insert the pieces on the board
     private void createBlackPieces() {
@@ -166,61 +167,59 @@ public class GameController {
         }
         return pieces;
     }
-    
-
 
     public MousePressedController getMouseController() {
         return new MousePressedController();
     }
 
-
     //creating classes that will handle the events of mouse pressing
     private class MousePressedController implements EventHandler<MouseEvent> {
         @Override
         public void handle(MouseEvent e) {
+            
             Position pos = getClickPositionPosition(e.getX(), e.getY());
             if (isPieceOnPosition(pos) != null) {
                 movingPiece = isPieceOnPosition(pos);
                 initialX = movingPiece.getPosX() + 20;
                 initialY = movingPiece.getPosY();
 
-                initialTranslateX = movingPiece.getTranslateX();
-                initialTranslateY = movingPiece.getTranslateY();
-            }else{
+                initialTranslateX = 0;
+                initialTranslateY = 0;
+            } else {
                 movingPiece = null;
             }
         }
     }
 
-    public void dragEvent(MouseEvent e){
-        if(movingPiece != null){
-            double offsetX = e.getX() - initialX;
-            double offsetY = e.getY() - initialY;
+    public void dragEvent(MouseEvent e) {
+        if (movingPiece != null) {
+            double offsetX = e.getSceneX() - initialX;
+            double offsetY = e.getSceneY() - initialY;
             double newTranslateX = initialTranslateX + offsetX;
             double newTranslateY = initialTranslateY + offsetY;
 
-            for(Piece p: getAllPiecesOnBoard()){
-                if(movingPiece.equals(p)){
-                    p.setTranslateX(newTranslateX);
-                    p.setTranslateY(newTranslateY);
-                }
-            }
+            movingPiece.setTranslateX(newTranslateX);
+            movingPiece.setTranslateY(newTranslateY);
         }
     }
-    
-    public void dragReleased(MouseEvent e){
-        if(movingPiece != null){
-           Position pos = getClickPositionPosition(e.getX(), e.getY());
-           for(Piece p: getAllPiecesOnBoard()){
-               if(movingPiece.equals(p)){
-                   p.setPos(pos);
-                   System.out.println(p);
-                   break;
-               }
-           }           
+
+    public void dragReleased(MouseEvent e) {
+        if (movingPiece != null) {
+            Position pos = getClickPositionPosition(e.getX(), e.getY());
+            movingPiece.setPos(pos);
+            
+            double posX = board.getXBoardPosition((int)pos.getXpos() -1, (int)pos.getYpos() -1);
+            double posY = board.getYBoardPosition((int)pos.getXpos() -1, (int)pos.getYpos() -1);
+            
+            movingPiece.setTranslateX(0);
+            movingPiece.setTranslateY(0);
+            movingPiece.setPosX((int)posX);
+            movingPiece.setPosY((int)posY);
+            movingPiece.setLayoutX(posX);
+            movingPiece.setLayoutY(posY);
         }
+    
     }
-    
-    
+
     //class ends
 }

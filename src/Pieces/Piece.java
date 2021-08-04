@@ -29,9 +29,14 @@ public class Piece extends ImageView{
     private boolean team;
     
     //Adjustments 
-    private int offsetKingQueenKnight = 9;
+    private final int offsetKingQueenKnight = 9;
     
     public Piece(int posX, int posY, Type type, boolean team, Board board){
+        //setting ID
+        ID++;
+        id = ID;    
+        
+        
         //SETTING UP THE PIECE AND ITS IMAGE
         this.type = type;
         this.team = team;
@@ -43,23 +48,22 @@ public class Piece extends ImageView{
         setImage(imageAfter);
         
         //creating an array for its position
-        ChessBoardPos = new Position(posX, posY);
         
-        //SETTING UP THE POSITION OF THE IMAGE
-        //POSITION ENTERED IS POS ON BOARD, NOT ON SCREEN
-        posX--;
-        posY--;
+        //chess Board position is the concrete position on the chess board
+        // (1,2) or (5 , 4) for example
+        ChessBoardPos = new Position(posX, posY);
+        posX--; posY--;
         this.posX = board.getXBoardPosition(posX, posY);
         this.posY = board.getYBoardPosition(posX, posY);
+        
         
         //defining offsets
         if(type == Type.QUEEN || type == Type.KING || type == Type.KNIGHT) this.posX -= offsetKingQueenKnight;
         setLayoutX(this.posX);
-        setLayoutY(this.posY);
-        board.insertElement(this);
+        setLayoutY(this.posY); 
         
-        ID++;
-        id = ID;
+        //in pane position is the concrete position relative to the Pane
+        board.insertElement(this);
     }
     
     @Override
@@ -74,10 +78,13 @@ public class Piece extends ImageView{
 
     @Override
     public int hashCode() {
-        int hash = 5;
-        hash = 59 * hash + Objects.hashCode(this.type);
-        hash = 59 * hash + this.id;
-        hash = 59 * hash + (this.team ? 1 : 0);
+        int hash = 7;
+        hash = 83 * hash + (int) (Double.doubleToLongBits(this.posX) ^ (Double.doubleToLongBits(this.posX) >>> 32));
+        hash = 83 * hash + (int) (Double.doubleToLongBits(this.posY) ^ (Double.doubleToLongBits(this.posY) >>> 32));
+        hash = 83 * hash + Objects.hashCode(this.ChessBoardPos);
+        hash = 83 * hash + Objects.hashCode(this.type);
+        hash = 83 * hash + this.id;
+        hash = 83 * hash + (this.team ? 1 : 0);
         return hash;
     }
 
@@ -93,10 +100,19 @@ public class Piece extends ImageView{
             return false;
         }
         final Piece other = (Piece) obj;
+        if (Double.doubleToLongBits(this.posX) != Double.doubleToLongBits(other.posX)) {
+            return false;
+        }
+        if (Double.doubleToLongBits(this.posY) != Double.doubleToLongBits(other.posY)) {
+            return false;
+        }
         if (this.id != other.id) {
             return false;
         }
         if (this.team != other.team) {
+            return false;
+        }
+        if (!Objects.equals(this.ChessBoardPos, other.ChessBoardPos)) {
             return false;
         }
         if (this.type != other.type) {
@@ -106,7 +122,7 @@ public class Piece extends ImageView{
     }
     
     
-   
+        
     public String getPath() {
         return path;
     }
@@ -169,6 +185,7 @@ public class Piece extends ImageView{
 
     public void setPos(Position pos) {
         this.ChessBoardPos = pos;
+        
     }
 
     public static int getID() {

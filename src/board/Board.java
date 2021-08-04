@@ -81,6 +81,7 @@ public class Board extends Pane{
     public double getXBoardPosition(int a , int b){
         return positions[a][b].getXpos() + 15 ;
     }
+    
     public double getYBoardPosition(int a , int b){
         return positions[a][b].getYpos() + 10;
     }
@@ -88,7 +89,10 @@ public class Board extends Pane{
     public void insertElement(Node n){
         getChildren().add(n);
     }
-
+    
+    public void removeElement(Node n){
+        getChildren().remove(n);
+    }
     public ArrayList<Rectangle> getSquares() {
         return squares;
     }
