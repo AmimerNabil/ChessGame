@@ -14,6 +14,7 @@ import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.input.MouseDragEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.paint.Color;
 
 /**
  *
@@ -68,7 +69,11 @@ public class GameController {
     private Piece movingPiece;
     private double initialTranslateX;
     private double initialTranslateY;
-
+    
+    
+    private Position initialPosition;
+    private int indexOfSquare;
+    private Color colorBefore;
     public GameController(Board board) {
         this.board = board;
 
@@ -176,10 +181,13 @@ public class GameController {
     private class MousePressedController implements EventHandler<MouseEvent> {
         @Override
         public void handle(MouseEvent e) {
-            
-            Position pos = getClickPositionPosition(e.getX(), e.getY());
-            if (isPieceOnPosition(pos) != null) {
-                movingPiece = isPieceOnPosition(pos);
+            initialPosition = getClickPositionPosition(e.getX(), e.getY());
+            if (isPieceOnPosition(initialPosition) != null) {
+                indexOfSquare = ((int)initialPosition.getXpos()-1)*8 + (int)initialPosition.getYpos() - 1; 
+                System.out.println(indexOfSquare);
+                colorBefore = (Color)board.getSquares().get(indexOfSquare).getFill();
+                board.getSquares().get(indexOfSquare).setFill(Color.GOLD);
+                movingPiece = isPieceOnPosition(initialPosition);
                 initialX = movingPiece.getPosX() + 20;
                 initialY = movingPiece.getPosY();
 
@@ -207,9 +215,10 @@ public class GameController {
         if (movingPiece != null) {
             Position pos = getClickPositionPosition(e.getX(), e.getY());
             movingPiece.setPos(pos);
-            
+            board.getSquares().get(indexOfSquare).setFill(colorBefore);
             double posX = board.getXBoardPosition((int)pos.getXpos() -1, (int)pos.getYpos() -1);
             double posY = board.getYBoardPosition((int)pos.getXpos() -1, (int)pos.getYpos() -1);
+            
             
             movingPiece.setTranslateX(0);
             movingPiece.setTranslateY(0);

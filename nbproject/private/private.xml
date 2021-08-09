@@ -3,8 +3,10 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+            <file>file:/D:/Programming/java%20projects/Chess/src/Pieces/Type.java</file>
             <file>file:/D:/Programming/java%20projects/Chess/src/board/Board.java</file>
             <file>file:/D:/Programming/java%20projects/Chess/src/chess/Chess.java</file>
+            <file>file:/D:/Programming/java%20projects/Chess/src/board/Position.java</file>
             <file>file:/D:/Programming/java%20projects/Chess/src/Pieces/Piece.java</file>
             <file>file:/D:/Programming/java%20projects/Chess/src/GameController/GameController.java</file>
         </group>
