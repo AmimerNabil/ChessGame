@@ -9,12 +9,14 @@ import board.Board;
 import Pieces.Piece;
 import Pieces.Type;
 import board.Position;
+import board.SpeicialRectangle;
 import java.util.ArrayList;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.input.MouseDragEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 
 /**
  *
@@ -69,18 +71,18 @@ public class GameController {
     private Piece movingPiece;
     private double initialTranslateX;
     private double initialTranslateY;
-    
-    
+
     private Position initialPosition;
     private int indexOfSquare;
     private Color colorBefore;
+    ArrayList<Position> positions;
+
     public GameController(Board board) {
         this.board = board;
 
         createBlackPieces();
         createWhitePieces();
     }
-   
 
     //next two methods are only used to create and insert the pieces on the board
     private void createBlackPieces() {
@@ -123,6 +125,11 @@ public class GameController {
         kingW = new Piece(5, 8, Type.KING, false, board);
     }
 
+    //used to get the index of a square at a position x and y on the board
+    private int getIndexOfSquare(double boardX, double boardY) {
+        return ((int) boardX - 1) * 8 + (int) boardY - 1;
+    }
+
     // used to get what position the mouse has been clicked on and find if there is a piece on that board position
     private Position getClickPositionPosition(double x, double y) {
         int counterX = 1;
@@ -130,7 +137,7 @@ public class GameController {
 
         if (x < board.getChessBoardOffsetX() || x > board.getChessBoardOffsetX() + 800
                 || y < board.getChessBoardOffsetY() || y > board.getChessBoardOffsetY() + 800) {
-            Position pos = new Position(800, 800);
+            Position pos = new Position(1000, 1000);
             System.out.println("Clicked Outside of the board");
             return pos;
         }
@@ -172,24 +179,31 @@ public class GameController {
         }
         return pieces;
     }
+    
+    private void resetColors(){
+        for(SpeicialRectangle r: board.getSquares()){
+            r.setFill(r.getInitalColor());
+        }
+    }
 
     public MousePressedController getMouseController() {
         return new MousePressedController();
     }
 
-    //creating classes that will handle the events of mouse pressing
+    //creating classes/ lambda methods that will handle the events of mouse pressing
     private class MousePressedController implements EventHandler<MouseEvent> {
+
         @Override
         public void handle(MouseEvent e) {
             initialPosition = getClickPositionPosition(e.getX(), e.getY());
             if (isPieceOnPosition(initialPosition) != null) {
-                indexOfSquare = ((int)initialPosition.getXpos()-1)*8 + (int)initialPosition.getYpos() - 1; 
-                System.out.println(indexOfSquare);
-                colorBefore = (Color)board.getSquares().get(indexOfSquare).getFill();
+                indexOfSquare = getIndexOfSquare(initialPosition.getXpos(), initialPosition.getYpos());
+                colorBefore = (Color) board.getSquares().get(indexOfSquare).getFill();
                 board.getSquares().get(indexOfSquare).setFill(Color.GOLD);
                 movingPiece = isPieceOnPosition(initialPosition);
-                initialX = movingPiece.getPosX() + 20;
-                initialY = movingPiece.getPosY();
+
+                initialX = movingPiece.getPosX() + 25;
+                initialY = movingPiece.getPosY() + 29;
 
                 initialTranslateX = 0;
                 initialTranslateY = 0;
@@ -206,29 +220,97 @@ public class GameController {
             double newTranslateX = initialTranslateX + offsetX;
             double newTranslateY = initialTranslateY + offsetY;
 
+            handleMovement(movingPiece);
+
             movingPiece.setTranslateX(newTranslateX);
             movingPiece.setTranslateY(newTranslateY);
         }
     }
 
     public void dragReleased(MouseEvent e) {
+        boolean correctMove = false;
+        double posX = 0;
+        double posY = 0;
         if (movingPiece != null) {
             Position pos = getClickPositionPosition(e.getX(), e.getY());
-            movingPiece.setPos(pos);
-            board.getSquares().get(indexOfSquare).setFill(colorBefore);
-            double posX = board.getXBoardPosition((int)pos.getXpos() -1, (int)pos.getYpos() -1);
-            double posY = board.getYBoardPosition((int)pos.getXpos() -1, (int)pos.getYpos() -1);
-            
-            
+
+            if (pos.getXpos() != 1000) {
+                board.getSquares().get(indexOfSquare).setFill(colorBefore);
+                posX = board.getXBoardPosition((int) pos.getXpos() - 1, (int) pos.getYpos() - 1);
+                posY = board.getYBoardPosition((int) pos.getXpos() - 1, (int) pos.getYpos() - 1);
+
+                for (Position p : positions) {
+                    if (p.equals(pos)) {
+                        correctMove = true;
+                    }
+                }
+            }
+
             movingPiece.setTranslateX(0);
             movingPiece.setTranslateY(0);
-            movingPiece.setPosX((int)posX);
-            movingPiece.setPosY((int)posY);
-            movingPiece.setLayoutX(posX);
-            movingPiece.setLayoutY(posY);
+            if (correctMove) {
+                movingPiece.setPos(pos);
+                movingPiece.setPosX((int) posX);
+                movingPiece.setPosY((int) posY);
+                movingPiece.setLayoutX(posX);
+                movingPiece.setLayoutY(posY);
+                movingPiece.setFirstMove(false);
+            } else {
+                movingPiece.setPosX((int) initialX - 25);
+                movingPiece.setPosY((int) initialY - 29);
+                movingPiece.setLayoutX((int) initialX - 25);
+                movingPiece.setLayoutY((int) initialY - 29);
+            }
+            
+            //resetColors
+            resetColors();
         }
-    
     }
 
+    private void handleMovement(Piece piece) {
+        positions = new ArrayList<>();
+
+        int index;
+        switch (piece.getType()) {
+            case PAWN:
+                positions = pawnMoves(piece);
+                break;
+            case ROOK:
+                break;
+            case KNIGHT:
+                break;
+            case BISHOP:
+                break;
+            case QUEEN:
+                break;
+            case KING:
+                break;
+        }
+
+        for (Position p : positions) {
+            index = getIndexOfSquare(p.getXpos(), p.getYpos());
+            board.getSquares().get(index).setFill(Color.GREY);
+        }
+    }
+
+    private ArrayList<Position> pawnMoves(Piece p) {
+        Position pos = p.getPos();
+        ArrayList<Position> possiblePos = new ArrayList<>();
+
+        if (p.isTeam()) {
+            possiblePos.add(new Position(pos.getXpos(), pos.getYpos() + 1));
+            if (p.isFirstMove()) {
+                possiblePos.add(new Position(pos.getXpos(), pos.getYpos() + 2));
+            }
+        } else {
+            possiblePos.add(new Position(pos.getXpos(), pos.getYpos() - 1));
+            if (p.isFirstMove()) {
+                possiblePos.add(new Position(pos.getXpos(), pos.getYpos() - 2));
+            }
+        }
+        return possiblePos;
+    }
+
+    
     //class ends
 }

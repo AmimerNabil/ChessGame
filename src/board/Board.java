@@ -24,7 +24,7 @@ import javafx.scene.shape.Rectangle;
 public class Board extends Pane{
 
     //actual chess board
-    private ArrayList<Rectangle> squares;
+    private ArrayList<SpeicialRectangle> squares;
     private int tiles;
     private int tileSize;
     private int BoardSize;
@@ -62,11 +62,17 @@ public class Board extends Pane{
         
         for(int i = 0; i < 8; i++){
             for(int j = 0; j < 8; j++){
-                Rectangle rec = new Rectangle(i*tileSize + chessBoardOffsetX, j*tileSize + chessBoardOffsetY, tileSize, tileSize);
+                SpeicialRectangle rec = new SpeicialRectangle(i*tileSize + chessBoardOffsetX, j*tileSize + chessBoardOffsetY, tileSize, tileSize);
                 positions[i][j] = new Position(i*tileSize + chessBoardOffsetX, j*tileSize + chessBoardOffsetY);
                 rec.setStroke(Color.BLACK);
-                if(counter %2 == 0) rec.setFill(Color.CHOCOLATE);
-                else rec.setFill(Color.ANTIQUEWHITE);
+                if(counter %2 == 0) {
+                    rec.setFill(Color.CHOCOLATE);
+                    rec.setInitalColor(Color.CHOCOLATE);
+                }
+                else{
+                    rec.setFill(Color.ANTIQUEWHITE);
+                    rec.setInitalColor(Color.ANTIQUEWHITE);
+                }
                 squares.add(rec);
                 counter++;
             }
@@ -93,11 +99,11 @@ public class Board extends Pane{
     public void removeElement(Node n){
         getChildren().remove(n);
     }
-    public ArrayList<Rectangle> getSquares() {
+    public ArrayList<SpeicialRectangle> getSquares() {
         return squares;
     }
 
-    public void setSquares(ArrayList<Rectangle> squares) {
+    public void setSquares(ArrayList<SpeicialRectangle> squares) {
         this.squares = squares;
     }
 

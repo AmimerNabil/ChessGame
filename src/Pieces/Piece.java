@@ -21,6 +21,7 @@ public class Piece extends ImageView{
     private double posX ,posY;
     private Position ChessBoardPos;
     private Image image, imageAfter;
+    private boolean firstMove;
     private Type type;
     
     private static int ID;
@@ -32,6 +33,7 @@ public class Piece extends ImageView{
     private final int offsetKingQueenKnight = 9;
     
     public Piece(int posX, int posY, Type type, boolean team, Board board){
+       
         //setting ID
         ID++;
         id = ID;    
@@ -64,6 +66,9 @@ public class Piece extends ImageView{
         
         //in pane position is the concrete position relative to the Pane
         board.insertElement(this);
+        
+        //first move 
+        firstMove = true;
     }
     
     @Override
@@ -202,6 +207,14 @@ public class Piece extends ImageView{
 
     public void setPieceId(int id) {
         this.id = id;
+    }
+
+    public boolean isFirstMove() {
+        return firstMove;
+    }
+
+    public void setFirstMove(boolean firstMove) {
+        this.firstMove = firstMove;
     }
     
     
