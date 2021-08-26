@@ -28,12 +28,12 @@ public class Piece extends ImageView{
     private int id;
     //if false = white, if true = black
     private boolean team;
-    
+    private boolean isEaten;
+        
     //Adjustments 
     private final int offsetKingQueenKnight = 9;
     
     public Piece(int posX, int posY, Type type, boolean team, Board board){
-       
         //setting ID
         ID++;
         id = ID;    
@@ -65,10 +65,16 @@ public class Piece extends ImageView{
         setLayoutY(this.posY); 
         
         //in pane position is the concrete position relative to the Pane
-        board.insertElement(this);
         
+        isEaten = false;
         //first move 
         firstMove = true;
+        
+        board.insertElement(this);
+    }
+    
+    public void remove(Board board){
+        board.removeElement(this);
     }
     
     @Override
@@ -83,13 +89,19 @@ public class Piece extends ImageView{
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 83 * hash + (int) (Double.doubleToLongBits(this.posX) ^ (Double.doubleToLongBits(this.posX) >>> 32));
-        hash = 83 * hash + (int) (Double.doubleToLongBits(this.posY) ^ (Double.doubleToLongBits(this.posY) >>> 32));
-        hash = 83 * hash + Objects.hashCode(this.ChessBoardPos);
-        hash = 83 * hash + Objects.hashCode(this.type);
-        hash = 83 * hash + this.id;
-        hash = 83 * hash + (this.team ? 1 : 0);
+        int hash = 5;
+        hash = 89 * hash + Objects.hashCode(this.path);
+        hash = 89 * hash + (int) (Double.doubleToLongBits(this.posX) ^ (Double.doubleToLongBits(this.posX) >>> 32));
+        hash = 89 * hash + (int) (Double.doubleToLongBits(this.posY) ^ (Double.doubleToLongBits(this.posY) >>> 32));
+        hash = 89 * hash + Objects.hashCode(this.ChessBoardPos);
+        hash = 89 * hash + Objects.hashCode(this.image);
+        hash = 89 * hash + Objects.hashCode(this.imageAfter);
+        hash = 89 * hash + (this.firstMove ? 1 : 0);
+        hash = 89 * hash + Objects.hashCode(this.type);
+        hash = 89 * hash + this.id;
+        hash = 89 * hash + (this.team ? 1 : 0);
+        hash = 89 * hash + (this.isEaten ? 1 : 0);
+        hash = 89 * hash + this.offsetKingQueenKnight;
         return hash;
     }
 
@@ -111,13 +123,31 @@ public class Piece extends ImageView{
         if (Double.doubleToLongBits(this.posY) != Double.doubleToLongBits(other.posY)) {
             return false;
         }
+        if (this.firstMove != other.firstMove) {
+            return false;
+        }
         if (this.id != other.id) {
             return false;
         }
         if (this.team != other.team) {
             return false;
         }
+        if (this.isEaten != other.isEaten) {
+            return false;
+        }
+        if (this.offsetKingQueenKnight != other.offsetKingQueenKnight) {
+            return false;
+        }
+        if (!Objects.equals(this.path, other.path)) {
+            return false;
+        }
         if (!Objects.equals(this.ChessBoardPos, other.ChessBoardPos)) {
+            return false;
+        }
+        if (!Objects.equals(this.image, other.image)) {
+            return false;
+        }
+        if (!Objects.equals(this.imageAfter, other.imageAfter)) {
             return false;
         }
         if (this.type != other.type) {
@@ -125,6 +155,8 @@ public class Piece extends ImageView{
         }
         return true;
     }
+
+
     
     
         
@@ -215,6 +247,14 @@ public class Piece extends ImageView{
 
     public void setFirstMove(boolean firstMove) {
         this.firstMove = firstMove;
+    }
+
+    public boolean getIsEaten() {
+        return isEaten;
+    }
+
+    public void setIsEaten(boolean isEaten) {
+        this.isEaten = isEaten;
     }
     
     

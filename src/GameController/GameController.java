@@ -11,12 +11,11 @@ import Pieces.Type;
 import board.Position;
 import board.SpeicialRectangle;
 import java.util.ArrayList;
+import javafx.animation.AnimationTimer;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
-import javafx.scene.input.MouseDragEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 
 /**
  *
@@ -24,46 +23,46 @@ import javafx.scene.shape.Rectangle;
  */
 public class GameController {
 
-    private Board board;
+    Board board;
 
     //Board Pieces
     //black Pieces
-    private Piece blackPawn1;
-    private Piece blackPawn2;
-    private Piece blackPawn3;
-    private Piece blackPawn4;
-    private Piece blackPawn5;
-    private Piece blackPawn6;
-    private Piece blackPawn7;
-    private Piece blackPawn8;
+    private Piece blackPawn1,
+            blackPawn2,
+            blackPawn3,
+            blackPawn4,
+            blackPawn5,
+            blackPawn6,
+            blackPawn7,
+            blackPawn8;
 
-    private Piece queenB;
-    private Piece kingB;
-    private Piece rookB1;
-    private Piece rookB2;
-    private Piece knightB1;
-    private Piece knightB2;
-    private Piece bishopB1;
-    private Piece bishopB2;
+    private Piece queenB,
+            kingB,
+            rookB1,
+            rookB2,
+            knightB1,
+            knightB2,
+            bishopB1,
+            bishopB2;
 
     //white Pieces
-    private Piece whitePawn1;
-    private Piece whitePawn2;
-    private Piece whitePawn3;
-    private Piece whitePawn4;
-    private Piece whitePawn5;
-    private Piece whitePawn6;
-    private Piece whitePawn7;
-    private Piece whitePawn8;
+    private Piece whitePawn1,
+            whitePawn2,
+            whitePawn3,
+            whitePawn4,
+            whitePawn5,
+            whitePawn6,
+            whitePawn7,
+            whitePawn8;
 
-    private Piece queenW;
-    private Piece kingW;
-    private Piece rookW1;
-    private Piece rookW2;
-    private Piece knightW1;
-    private Piece knightW2;
-    private Piece bishopW1;
-    private Piece bishopW2;
+    private Piece queenW,
+            kingW,
+            rookW1,
+            rookW2,
+            knightW1,
+            knightW2,
+            bishopW1,
+            bishopW2;
 
     //moving Variables : reinitialized every time the mouse is clicked
     private double initialX;
@@ -77,23 +76,56 @@ public class GameController {
     private Color colorBefore;
     ArrayList<Position> positions;
 
+    private boolean turn;
+
+    AnimationTimer timer;
+
     public GameController(Board board) {
         this.board = board;
-
         createBlackPieces();
         createWhitePieces();
+        turn = false;
+
+        timer = new AnimationTimer() {
+            double old = -1;
+            double elapsedTime = 0;
+            double timeBefore;
+
+            @Override
+            public void handle(long now) {
+                if (old < 0) {
+                    old = now;
+                }
+                double delta = (now - old) / 1e9;
+                timeBefore = elapsedTime;
+                update(elapsedTime);
+                old = now;
+                elapsedTime += delta;
+            }
+        };
+        timer.start();
+    }
+
+    private void update(double timeElapsed) {
+
+        try {
+            removeDeadElements();
+        } catch (Exception e) {
+            System.out.println("A piece has been eatten");
+        }
+
     }
 
     //next two methods are only used to create and insert the pieces on the board
     private void createBlackPieces() {
-        blackPawn1 = new Piece(1, 2, Type.PAWN, true, this.board);
-        blackPawn2 = new Piece(2, 2, Type.PAWN, true, this.board);
-        blackPawn3 = new Piece(3, 2, Type.PAWN, true, this.board);
-        blackPawn4 = new Piece(4, 2, Type.PAWN, true, this.board);
-        blackPawn5 = new Piece(5, 2, Type.PAWN, true, this.board);
-        blackPawn6 = new Piece(6, 2, Type.PAWN, true, this.board);
-        blackPawn7 = new Piece(7, 2, Type.PAWN, true, this.board);
-        blackPawn8 = new Piece(8, 2, Type.PAWN, true, this.board);
+        blackPawn1 = new Piece(1, 2, Type.PAWN, true, board);
+        blackPawn2 = new Piece(2, 2, Type.PAWN, true, board);
+        blackPawn3 = new Piece(3, 2, Type.PAWN, true, board);
+        blackPawn4 = new Piece(4, 2, Type.PAWN, true, board);
+        blackPawn5 = new Piece(5, 2, Type.PAWN, true, board);
+        blackPawn6 = new Piece(6, 2, Type.PAWN, true, board);
+        blackPawn7 = new Piece(7, 2, Type.PAWN, true, board);
+        blackPawn8 = new Piece(8, 2, Type.PAWN, true, board);
 
         queenB = new Piece(4, 1, Type.QUEEN, true, board);
         rookB1 = new Piece(1, 1, Type.ROOK, true, board);
@@ -106,14 +138,14 @@ public class GameController {
     }
 
     private void createWhitePieces() {
-        whitePawn1 = new Piece(1, 7, Type.PAWN, false, this.board);
-        whitePawn2 = new Piece(2, 7, Type.PAWN, false, this.board);
-        whitePawn3 = new Piece(3, 7, Type.PAWN, false, this.board);
-        whitePawn4 = new Piece(4, 7, Type.PAWN, false, this.board);
-        whitePawn5 = new Piece(5, 7, Type.PAWN, false, this.board);
-        whitePawn6 = new Piece(6, 7, Type.PAWN, false, this.board);
-        whitePawn7 = new Piece(7, 7, Type.PAWN, false, this.board);
-        whitePawn8 = new Piece(8, 7, Type.PAWN, false, this.board);
+        whitePawn1 = new Piece(1, 7, Type.PAWN, false, board);
+        whitePawn2 = new Piece(2, 7, Type.PAWN, false, board);
+        whitePawn3 = new Piece(3, 7, Type.PAWN, false, board);
+        whitePawn4 = new Piece(4, 7, Type.PAWN, false, board);
+        whitePawn5 = new Piece(5, 7, Type.PAWN, false, board);
+        whitePawn6 = new Piece(6, 7, Type.PAWN, false, board);
+        whitePawn7 = new Piece(7, 7, Type.PAWN, false, board);
+        whitePawn8 = new Piece(8, 7, Type.PAWN, false, board);
 
         queenW = new Piece(4, 8, Type.QUEEN, false, board);
         rookW1 = new Piece(1, 8, Type.ROOK, false, board);
@@ -179,9 +211,33 @@ public class GameController {
         }
         return pieces;
     }
-    
-    private void resetColors(){
-        for(SpeicialRectangle r: board.getSquares()){
+
+    private ArrayList<Piece> getAllWhitePieces() {
+        ArrayList<Piece> whitePieces = new ArrayList<>();
+
+        for (Piece p : getAllPiecesOnBoard()) {
+            if (!p.isTeam()) {
+                whitePieces.add(p);
+            }
+        }
+
+        return whitePieces;
+    }
+
+    private ArrayList<Piece> getAllBlackPieces() {
+        ArrayList<Piece> blackPieces = new ArrayList<>();
+
+        for (Piece p : getAllPiecesOnBoard()) {
+            if (p.isTeam()) {
+                blackPieces.add(p);
+            }
+        }
+
+        return blackPieces;
+    }
+
+    private void resetColors() {
+        for (SpeicialRectangle r : board.getSquares()) {
             r.setFill(r.getInitalColor());
         }
     }
@@ -197,16 +253,20 @@ public class GameController {
         public void handle(MouseEvent e) {
             initialPosition = getClickPositionPosition(e.getX(), e.getY());
             if (isPieceOnPosition(initialPosition) != null) {
-                indexOfSquare = getIndexOfSquare(initialPosition.getXpos(), initialPosition.getYpos());
-                colorBefore = (Color) board.getSquares().get(indexOfSquare).getFill();
-                board.getSquares().get(indexOfSquare).setFill(Color.GOLD);
                 movingPiece = isPieceOnPosition(initialPosition);
+                if (movingPiece.isTeam() == turn) {
+                    indexOfSquare = getIndexOfSquare(initialPosition.getXpos(), initialPosition.getYpos());
+                    colorBefore = (Color) board.getSquares().get(indexOfSquare).getFill();
+                    board.getSquares().get(indexOfSquare).setFill(Color.GOLD);
 
-                initialX = movingPiece.getPosX() + 25;
-                initialY = movingPiece.getPosY() + 29;
+                    handleMovement(movingPiece);
+                    initialX = movingPiece.getPosX() + 25;
+                    initialY = movingPiece.getPosY() + 29;
 
-                initialTranslateX = 0;
-                initialTranslateY = 0;
+                    initialTranslateX = 0;
+                    initialTranslateY = 0;
+                }
+
             } else {
                 movingPiece = null;
             }
@@ -214,13 +274,11 @@ public class GameController {
     }
 
     public void dragEvent(MouseEvent e) {
-        if (movingPiece != null) {
+        if (movingPiece != null && movingPiece.isTeam() == turn) {
             double offsetX = e.getSceneX() - initialX;
             double offsetY = e.getSceneY() - initialY;
             double newTranslateX = initialTranslateX + offsetX;
             double newTranslateY = initialTranslateY + offsetY;
-
-            handleMovement(movingPiece);
 
             movingPiece.setTranslateX(newTranslateX);
             movingPiece.setTranslateY(newTranslateY);
@@ -231,7 +289,7 @@ public class GameController {
         boolean correctMove = false;
         double posX = 0;
         double posY = 0;
-        if (movingPiece != null) {
+        if (movingPiece != null && movingPiece.isTeam() == turn) {
             Position pos = getClickPositionPosition(e.getX(), e.getY());
 
             if (pos.getXpos() != 1000) {
@@ -240,8 +298,18 @@ public class GameController {
                 posY = board.getYBoardPosition((int) pos.getXpos() - 1, (int) pos.getYpos() - 1);
 
                 for (Position p : positions) {
+                    //this is to figure out if we have left the piece in a possible possition
                     if (p.equals(pos)) {
                         correctMove = true;
+                        //this is to handle what happens if there is a piece at this position. 
+                        if (isPieceOnPosition(pos) != null) {
+//                            if (isPieceOnPosition(pos).isTeam() == movingPiece.isTeam()) {
+//                                correctMove = false;
+//                            } else {
+                                isPieceOnPosition(pos).setIsEaten(true);
+                                isPieceOnPosition(pos).setVisible(false);
+//                            }
+                        }
                     }
                 }
             }
@@ -255,16 +323,19 @@ public class GameController {
                 movingPiece.setLayoutX(posX);
                 movingPiece.setLayoutY(posY);
                 movingPiece.setFirstMove(false);
+                turn = !turn;
+
             } else {
                 movingPiece.setPosX((int) initialX - 25);
                 movingPiece.setPosY((int) initialY - 29);
                 movingPiece.setLayoutX((int) initialX - 25);
                 movingPiece.setLayoutY((int) initialY - 29);
             }
-            
+
             //resetColors
             resetColors();
         }
+
     }
 
     private void handleMovement(Piece piece) {
@@ -295,22 +366,68 @@ public class GameController {
 
     private ArrayList<Position> pawnMoves(Piece p) {
         Position pos = p.getPos();
+        Position front = new Position(0, 0);
+        Position leftDiagonal = new Position(0, 0);
+        Position rightDiagonal = new Position(0, 0);
+
         ArrayList<Position> possiblePos = new ArrayList<>();
 
         if (p.isTeam()) {
-            possiblePos.add(new Position(pos.getXpos(), pos.getYpos() + 1));
+            front.setXpos((int) pos.getXpos());
+            front.setYpos((int) pos.getYpos() + 1);
+
+            leftDiagonal.setXpos((int) pos.getXpos() - 1);
+            leftDiagonal.setYpos((int) pos.getYpos() + 1);
+
+            rightDiagonal.setXpos((int) pos.getXpos() + 1);
+            rightDiagonal.setYpos((int) pos.getYpos() + 1);
+
+            possiblePos.add(front);
             if (p.isFirstMove()) {
                 possiblePos.add(new Position(pos.getXpos(), pos.getYpos() + 2));
             }
+
+            for (Piece enemyPieces : getAllWhitePieces()) {
+                if (enemyPieces.getPos().equals(leftDiagonal) || enemyPieces.getPos().equals(rightDiagonal)) {
+                    possiblePos.add(enemyPieces.getPos());
+                }
+            }
+
         } else {
-            possiblePos.add(new Position(pos.getXpos(), pos.getYpos() - 1));
+            front.setXpos((int) pos.getXpos());
+            front.setYpos((int) pos.getYpos() - 1);
+
+            leftDiagonal.setXpos((int) pos.getXpos() - 1);
+            leftDiagonal.setYpos((int) pos.getYpos() - 1);
+
+            rightDiagonal.setXpos((int) pos.getXpos() + 1);
+            rightDiagonal.setYpos((int) pos.getYpos() - 1);
+
+            possiblePos.add(front);
             if (p.isFirstMove()) {
                 possiblePos.add(new Position(pos.getXpos(), pos.getYpos() - 2));
             }
+
+            for (Piece enemyPieces : getAllBlackPieces()) {
+                if (enemyPieces.getPos().equals(leftDiagonal) || enemyPieces.getPos().equals(rightDiagonal)) {
+                    possiblePos.add(enemyPieces.getPos());
+                }
+            }
+        }
+
+        if (isPieceOnPosition(front) != null) {
+            possiblePos.remove(front);
         }
         return possiblePos;
     }
 
-    
+    private void removeDeadElements() throws IllegalArgumentException {
+        for (Piece p : getAllPiecesOnBoard()) {
+            if (p.getIsEaten()) {
+                p.remove(board);
+            }
+        }
+    }
+
     //class ends
 }

@@ -15,7 +15,7 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-
+import Pieces.Piece;
 
 /**
  *
@@ -28,11 +28,10 @@ public class Board extends Pane{
     private int tiles;
     private int tileSize;
     private int BoardSize;
-    
-    private Pane chessPane;
+
     private int chessBoardOffsetX = 20;
     private int chessBoardOffsetY = 40;
-    private Position[][] positions = new Position[8][8];
+    private Position[][] positions;
     
     //extra space for moves and info
     private int moveZoneWidth = 300;
@@ -44,15 +43,8 @@ public class Board extends Pane{
         tiles = 8; tileSize = 100; BoardSize = tiles*tileSize;
         setPrefSize(BoardSize + moveZoneWidth, BoardSize + piecesTakenHeight);
         
-        //chessPane
+        positions = new Position[8][8];
         squares = new ArrayList<>();
-        chessPane = new Pane();
-        chessPane.setPrefSize(BoardSize, BoardSize);
-        chessPane.setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
-        chessPane.setLayoutX(chessBoardOffsetX);
-        chessPane.setLayoutY(chessBoardOffsetY);
-        
-        getChildren().add(chessPane);
         setChessBoardLines();
     }
     
@@ -84,6 +76,7 @@ public class Board extends Pane{
         }
     }
     
+    
     public double getXBoardPosition(int a , int b){
         return positions[a][b].getXpos() + 15 ;
     }
@@ -99,6 +92,7 @@ public class Board extends Pane{
     public void removeElement(Node n){
         getChildren().remove(n);
     }
+    
     public ArrayList<SpeicialRectangle> getSquares() {
         return squares;
     }
@@ -129,14 +123,6 @@ public class Board extends Pane{
 
     public void setBoardSize(int BoardSize) {
         this.BoardSize = BoardSize;
-    }
-
-    public Pane getChessPane() {
-        return chessPane;
-    }
-
-    public void setChessPane(Pane chessPane) {
-        this.chessPane = chessPane;
     }
 
     public int getChessBoardOffsetX() {
