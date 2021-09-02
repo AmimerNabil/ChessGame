@@ -10,6 +10,7 @@ If anyone stunbles upon this project, don't hesitate to give advice about my cod
 
 
 !!!!-------------------------------!!!
+
 As for the game controller and the movements for each pieces. I know that it was done in a sloppy manner. I will correct that as soon as I have time. 
 
 Thank you, 
