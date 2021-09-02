@@ -11,6 +11,7 @@ import Pieces.Type;
 import board.Position;
 import board.SpeicialRectangle;
 import java.util.ArrayList;
+import java.util.Collections;
 import javafx.animation.AnimationTimer;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
@@ -112,6 +113,7 @@ public class GameController {
             removeDeadElements();
         } catch (Exception e) {
             System.out.println("A piece has been eatten");
+            System.out.println(e);
         }
 
     }
@@ -296,7 +298,9 @@ public class GameController {
                 board.getSquares().get(indexOfSquare).setFill(colorBefore);
                 posX = board.getXBoardPosition((int) pos.getXpos() - 1, (int) pos.getYpos() - 1);
                 posY = board.getYBoardPosition((int) pos.getXpos() - 1, (int) pos.getYpos() - 1);
-
+                if (movingPiece.getType() == Type.QUEEN || movingPiece.getType() == Type.KING || movingPiece.getType() == Type.KNIGHT) {
+                    posX -= 9;
+                }
                 for (Position p : positions) {
                     //this is to figure out if we have left the piece in a possible possition
                     if (p.equals(pos)) {
@@ -306,8 +310,8 @@ public class GameController {
 //                            if (isPieceOnPosition(pos).isTeam() == movingPiece.isTeam()) {
 //                                correctMove = false;
 //                            } else {
-                                isPieceOnPosition(pos).setIsEaten(true);
-                                isPieceOnPosition(pos).setVisible(false);
+                            isPieceOnPosition(pos).setIsEaten(true);
+                            isPieceOnPosition(pos).setVisible(false);
 //                            }
                         }
                     }
@@ -347,15 +351,22 @@ public class GameController {
                 positions = pawnMoves(piece);
                 break;
             case ROOK:
+                positions = rookMoves(piece);
                 break;
             case KNIGHT:
+                positions = knightMoves(piece);
                 break;
             case BISHOP:
+                positions = bishopMoves(piece);
                 break;
             case QUEEN:
+                positions = queenMoves(piece);
                 break;
             case KING:
+                positions = kingMoves(piece);
                 break;
+            default:
+
         }
 
         for (Position p : positions) {
@@ -367,6 +378,7 @@ public class GameController {
     private ArrayList<Position> pawnMoves(Piece p) {
         Position pos = p.getPos();
         Position front = new Position(0, 0);
+        Position front2 = new Position(0, 0);
         Position leftDiagonal = new Position(0, 0);
         Position rightDiagonal = new Position(0, 0);
 
@@ -375,6 +387,9 @@ public class GameController {
         if (p.isTeam()) {
             front.setXpos((int) pos.getXpos());
             front.setYpos((int) pos.getYpos() + 1);
+
+            front2.setXpos((int) pos.getXpos());
+            front2.setYpos((int) pos.getYpos() + 2);
 
             leftDiagonal.setXpos((int) pos.getXpos() - 1);
             leftDiagonal.setYpos((int) pos.getYpos() + 1);
@@ -397,6 +412,9 @@ public class GameController {
             front.setXpos((int) pos.getXpos());
             front.setYpos((int) pos.getYpos() - 1);
 
+            front2.setXpos((int) pos.getXpos());
+            front2.setYpos((int) pos.getYpos() - 2);
+
             leftDiagonal.setXpos((int) pos.getXpos() - 1);
             leftDiagonal.setYpos((int) pos.getYpos() - 1);
 
@@ -417,8 +435,596 @@ public class GameController {
 
         if (isPieceOnPosition(front) != null) {
             possiblePos.remove(front);
+            possiblePos.remove(front2);
         }
+
+        if (isPieceOnPosition(front2) != null) {
+            if (positions.contains(front2)) {
+                possiblePos.remove(front2);
+            }
+        }
+
         return possiblePos;
+    }
+
+    private ArrayList<Position> rookMoves(Piece piece) {
+        ArrayList<Position> possibilities = new ArrayList<>();
+        Position p = piece.getPos();
+        Position front = new Position(p.getXpos(), p.getYpos());
+        Position back = new Position(p.getXpos(), p.getYpos());
+        Position left = new Position(p.getXpos(), p.getYpos());
+        Position Right = new Position(p.getXpos(), p.getYpos());
+        boolean metPieceFront = false;
+        boolean metPieceBack = false;
+        boolean metPieceLeft = false;
+        boolean metPieceRight = false;
+
+        //front moves
+        while (!metPieceFront) {
+            int newYpos = (int) front.getYpos() - 1;
+            if (newYpos < 1) {
+                metPieceFront = true;
+            } else {
+                front.setYpos(newYpos);
+                if (isPieceOnPosition(front) != null) {
+                    if (isPieceOnPosition(front).isTeam() != piece.isTeam()) {
+                        possibilities.add(new Position(front.getXpos(), front.getYpos()));
+                    }
+                    metPieceFront = true;
+                } else {
+                    possibilities.add(new Position(front.getXpos(), front.getYpos()));
+                }
+            }
+        }
+
+        //back moves
+        while (!metPieceBack) {
+            int newYpos = (int) back.getYpos() + 1;
+            if (newYpos > 8) {
+                metPieceBack = true;
+            } else {
+                back.setYpos(newYpos);
+                if (isPieceOnPosition(back) != null) {
+                    if (isPieceOnPosition(back).isTeam() != piece.isTeam()) {
+                        possibilities.add(new Position(back.getXpos(), back.getYpos()));
+                    }
+                    metPieceBack = true;
+                } else {
+                    possibilities.add(new Position(back.getXpos(), back.getYpos()));
+                }
+            }
+        }
+
+        //right
+        while (!metPieceRight) {
+            int newXpos = (int) Right.getXpos() + 1;
+            if (newXpos > 8) {
+                metPieceRight = true;
+            } else {
+                Right.setXpos(newXpos);
+                if (isPieceOnPosition(Right) != null) {
+                    if (isPieceOnPosition(Right).isTeam() != piece.isTeam()) {
+                        possibilities.add(new Position(Right.getXpos(), Right.getYpos()));
+                    }
+                    metPieceRight = true;
+                } else {
+                    possibilities.add(new Position(Right.getXpos(), Right.getYpos()));
+                }
+            }
+        }
+
+        //left
+        while (!metPieceLeft) {
+            int newXpos = (int) left.getXpos() - 1;
+            if (newXpos < 1) {
+                metPieceLeft = true;
+            } else {
+                left.setXpos(newXpos);
+                if (isPieceOnPosition(left) != null) {
+                    if (isPieceOnPosition(left).isTeam() != piece.isTeam()) {
+                        possibilities.add(new Position(left.getXpos(), left.getYpos()));
+                    }
+                    metPieceLeft = true;
+                } else {
+                    possibilities.add(new Position(left.getXpos(), left.getYpos()));
+                }
+            }
+        }
+
+        return possibilities;
+    }
+
+    private ArrayList<Position> kingMoves(Piece piece) {
+        ArrayList<Position> possibilities = new ArrayList<>();
+        Position p = piece.getPos();
+
+        //front left right back
+        Position front = new Position(p.getXpos(), p.getYpos());
+        Position back = new Position(p.getXpos(), p.getYpos());
+        Position left = new Position(p.getXpos(), p.getYpos());
+        Position Right = new Position(p.getXpos(), p.getYpos());
+        boolean metPieceFront = false;
+        boolean metPieceBack = false;
+        boolean metPieceLeft = false;
+        boolean metPieceRight = false;
+
+        //diagonals
+        Position diagonalFL = new Position(p.getXpos(), p.getYpos());
+        Position diagonalFR = new Position(p.getXpos(), p.getYpos());
+        Position diagonalBL = new Position(p.getXpos(), p.getYpos());
+        Position diagonalBR = new Position(p.getXpos(), p.getYpos());
+        boolean metPieceFL = false;
+        boolean metPieceFR = false;
+        boolean metPieceBL = false;
+        boolean metPieceBR = false;
+
+        while (!metPieceFL) {
+            int newYpos = (int) diagonalFL.getYpos() - 1;
+            int newXpos = (int) diagonalFL.getXpos() - 1;
+            if (newYpos < 1 || newXpos < 1) {
+                metPieceFL = true;
+            } else {
+                diagonalFL.setXpos(newXpos);
+                diagonalFL.setYpos(newYpos);
+                if (isPieceOnPosition(diagonalFL) != null) {
+                    if (isPieceOnPosition(diagonalFL).isTeam() != piece.isTeam()) {
+                        possibilities.add(new Position(diagonalFL.getXpos(), diagonalFL.getYpos()));
+                    }
+                    metPieceFL = true;
+                } else {
+                    possibilities.add(new Position(diagonalFL.getXpos(), diagonalFL.getYpos()));
+                }
+            }
+            metPieceFL = true;
+        }
+
+        while (!metPieceFR) {
+            int newYpos = (int) diagonalFR.getYpos() - 1;
+            int newXpos = (int) diagonalFR.getXpos() + 1;
+            if (newYpos < 1 || newXpos > 8) {
+                metPieceFR = true;
+            } else {
+                diagonalFR.setXpos(newXpos);
+                diagonalFR.setYpos(newYpos);
+                if (isPieceOnPosition(diagonalFR) != null) {
+                    if (isPieceOnPosition(diagonalFR).isTeam() != piece.isTeam()) {
+                        possibilities.add(new Position(diagonalFR.getXpos(), diagonalFR.getYpos()));
+                    }
+                    metPieceFR = true;
+                } else {
+                    possibilities.add(new Position(diagonalFR.getXpos(), diagonalFR.getYpos()));
+                }
+            }
+            metPieceFR = true;
+        }
+
+        while (!metPieceBL) {
+            int newYpos = (int) diagonalBL.getYpos() + 1;
+            int newXpos = (int) diagonalBL.getXpos() - 1;
+            if (newYpos > 8 || newXpos < 1) {
+                metPieceBL = true;
+            } else {
+                diagonalBL.setXpos(newXpos);
+                diagonalBL.setYpos(newYpos);
+                if (isPieceOnPosition(diagonalBL) != null) {
+                    if (isPieceOnPosition(diagonalBL).isTeam() != piece.isTeam()) {
+                        possibilities.add(new Position(diagonalBL.getXpos(), diagonalBL.getYpos()));
+                    }
+                    metPieceBL = true;
+                } else {
+                    possibilities.add(new Position(diagonalBL.getXpos(), diagonalBL.getYpos()));
+                }
+            }
+            metPieceBL = true;
+        }
+        while (!metPieceBR) {
+            int newYpos = (int) diagonalBR.getYpos() + 1;
+            int newXpos = (int) diagonalBR.getXpos() + 1;
+            if (newYpos > 8 || newXpos > 8) {
+                metPieceBR = true;
+            } else {
+                diagonalBR.setXpos(newXpos);
+                diagonalBR.setYpos(newYpos);
+                if (isPieceOnPosition(diagonalBR) != null) {
+                    if (isPieceOnPosition(diagonalBR).isTeam() != piece.isTeam()) {
+                        possibilities.add(new Position(diagonalBR.getXpos(), diagonalBR.getYpos()));
+                    }
+                    metPieceBR = true;
+                } else {
+                    possibilities.add(new Position(diagonalBR.getXpos(), diagonalBR.getYpos()));
+                }
+            }
+            metPieceBR = true;
+        }
+
+        //front moves
+        while (!metPieceFront) {
+            int newYpos = (int) front.getYpos() - 1;
+            if (newYpos < 1) {
+                metPieceFront = true;
+            } else {
+                front.setYpos(newYpos);
+                if (isPieceOnPosition(front) != null) {
+                    if (isPieceOnPosition(front).isTeam() != piece.isTeam()) {
+                        possibilities.add(new Position(front.getXpos(), front.getYpos()));
+                    }
+                    metPieceFront = true;
+                } else {
+                    possibilities.add(new Position(front.getXpos(), front.getYpos()));
+                }
+            }
+            metPieceFront = true;
+        }
+
+        //back moves
+        while (!metPieceBack) {
+            int newYpos = (int) back.getYpos() + 1;
+            if (newYpos > 8) {
+                metPieceBack = true;
+            } else {
+                back.setYpos(newYpos);
+                if (isPieceOnPosition(back) != null) {
+                    if (isPieceOnPosition(back).isTeam() != piece.isTeam()) {
+                        possibilities.add(new Position(back.getXpos(), back.getYpos()));
+                    }
+                    metPieceBack = true;
+                } else {
+                    possibilities.add(new Position(back.getXpos(), back.getYpos()));
+                }
+            }
+            metPieceBack = true;
+        }
+
+        //right
+        while (!metPieceRight) {
+            int newXpos = (int) Right.getXpos() + 1;
+            if (newXpos > 8) {
+                metPieceRight = true;
+            } else {
+                Right.setXpos(newXpos);
+                if (isPieceOnPosition(Right) != null) {
+                    if (isPieceOnPosition(Right).isTeam() != piece.isTeam()) {
+                        possibilities.add(new Position(Right.getXpos(), Right.getYpos()));
+                    }
+                    metPieceRight = true;
+                } else {
+                    possibilities.add(new Position(Right.getXpos(), Right.getYpos()));
+                }
+            }
+            metPieceRight = true;
+        }
+
+        //left
+        while (!metPieceLeft) {
+            int newXpos = (int) left.getXpos() - 1;
+            if (newXpos < 1) {
+                metPieceLeft = true;
+            } else {
+                left.setXpos(newXpos);
+                if (isPieceOnPosition(left) != null) {
+                    if (isPieceOnPosition(left).isTeam() != piece.isTeam()) {
+                        possibilities.add(new Position(left.getXpos(), left.getYpos()));
+                    }
+                    metPieceLeft = true;
+                } else {
+                    possibilities.add(new Position(left.getXpos(), left.getYpos()));
+                }
+            }
+            metPieceLeft = true;
+        }
+
+        return possibilities;
+    }
+
+    private ArrayList<Position> bishopMoves(Piece piece) {
+        ArrayList<Position> possibilities = new ArrayList<>();
+        Position p = piece.getPos();
+        //diagonals
+        Position diagonalFL = new Position(p.getXpos(), p.getYpos());
+        Position diagonalFR = new Position(p.getXpos(), p.getYpos());
+        Position diagonalBL = new Position(p.getXpos(), p.getYpos());
+        Position diagonalBR = new Position(p.getXpos(), p.getYpos());
+        boolean metPieceFL = false;
+        boolean metPieceFR = false;
+        boolean metPieceBL = false;
+        boolean metPieceBR = false;
+
+        while (!metPieceFL) {
+            int newYpos = (int) diagonalFL.getYpos() - 1;
+            int newXpos = (int) diagonalFL.getXpos() - 1;
+            if (newYpos < 1 || newXpos < 1) {
+                metPieceFL = true;
+            } else {
+                diagonalFL.setXpos(newXpos);
+                diagonalFL.setYpos(newYpos);
+                if (isPieceOnPosition(diagonalFL) != null) {
+                    if (isPieceOnPosition(diagonalFL).isTeam() != piece.isTeam()) {
+                        possibilities.add(new Position(diagonalFL.getXpos(), diagonalFL.getYpos()));
+                    }
+                    metPieceFL = true;
+                } else {
+                    possibilities.add(new Position(diagonalFL.getXpos(), diagonalFL.getYpos()));
+                }
+            }
+        }
+
+        while (!metPieceFR) {
+            int newYpos = (int) diagonalFR.getYpos() - 1;
+            int newXpos = (int) diagonalFR.getXpos() + 1;
+            if (newYpos < 1 || newXpos > 8) {
+                metPieceFR = true;
+            } else {
+                diagonalFR.setXpos(newXpos);
+                diagonalFR.setYpos(newYpos);
+                if (isPieceOnPosition(diagonalFR) != null) {
+                    if (isPieceOnPosition(diagonalFR).isTeam() != piece.isTeam()) {
+                        possibilities.add(new Position(diagonalFR.getXpos(), diagonalFR.getYpos()));
+                    }
+                    metPieceFR = true;
+                } else {
+                    possibilities.add(new Position(diagonalFR.getXpos(), diagonalFR.getYpos()));
+                }
+            }
+        }
+
+        while (!metPieceBL) {
+            int newYpos = (int) diagonalBL.getYpos() + 1;
+            int newXpos = (int) diagonalBL.getXpos() - 1;
+            if (newYpos > 8 || newXpos < 1) {
+                metPieceBL = true;
+            } else {
+                diagonalBL.setXpos(newXpos);
+                diagonalBL.setYpos(newYpos);
+                if (isPieceOnPosition(diagonalBL) != null) {
+                    if (isPieceOnPosition(diagonalBL).isTeam() != piece.isTeam()) {
+                        possibilities.add(new Position(diagonalBL.getXpos(), diagonalBL.getYpos()));
+                    }
+                    metPieceBL = true;
+                } else {
+                    possibilities.add(new Position(diagonalBL.getXpos(), diagonalBL.getYpos()));
+                }
+            }
+        }
+        while (!metPieceBR) {
+            int newYpos = (int) diagonalBR.getYpos() + 1;
+            int newXpos = (int) diagonalBR.getXpos() + 1;
+            if (newYpos > 8 || newXpos > 8) {
+                metPieceBR = true;
+            } else {
+                diagonalBR.setXpos(newXpos);
+                diagonalBR.setYpos(newYpos);
+                if (isPieceOnPosition(diagonalBR) != null) {
+                    if (isPieceOnPosition(diagonalBR).isTeam() != piece.isTeam()) {
+                        possibilities.add(new Position(diagonalBR.getXpos(), diagonalBR.getYpos()));
+                    }
+                    metPieceBR = true;
+                } else {
+                    possibilities.add(new Position(diagonalBR.getXpos(), diagonalBR.getYpos()));
+                }
+            }
+        }
+        return possibilities;
+    }
+
+    private ArrayList<Position> queenMoves(Piece piece) {
+        ArrayList<Position> possibilities = new ArrayList<>();
+        Position p = piece.getPos();
+
+        //front left right back
+        Position front = new Position(p.getXpos(), p.getYpos());
+        Position back = new Position(p.getXpos(), p.getYpos());
+        Position left = new Position(p.getXpos(), p.getYpos());
+        Position Right = new Position(p.getXpos(), p.getYpos());
+        boolean metPieceFront = false;
+        boolean metPieceBack = false;
+        boolean metPieceLeft = false;
+        boolean metPieceRight = false;
+
+        //diagonals
+        Position diagonalFL = new Position(p.getXpos(), p.getYpos());
+        Position diagonalFR = new Position(p.getXpos(), p.getYpos());
+        Position diagonalBL = new Position(p.getXpos(), p.getYpos());
+        Position diagonalBR = new Position(p.getXpos(), p.getYpos());
+        boolean metPieceFL = false;
+        boolean metPieceFR = false;
+        boolean metPieceBL = false;
+        boolean metPieceBR = false;
+
+        while (!metPieceFL) {
+            int newYpos = (int) diagonalFL.getYpos() - 1;
+            int newXpos = (int) diagonalFL.getXpos() - 1;
+            if (newYpos < 1 || newXpos < 1) {
+                metPieceFL = true;
+            } else {
+                diagonalFL.setXpos(newXpos);
+                diagonalFL.setYpos(newYpos);
+                if (isPieceOnPosition(diagonalFL) != null) {
+                    if (isPieceOnPosition(diagonalFL).isTeam() != piece.isTeam()) {
+                        possibilities.add(new Position(diagonalFL.getXpos(), diagonalFL.getYpos()));
+                    }
+                    metPieceFL = true;
+                } else {
+                    possibilities.add(new Position(diagonalFL.getXpos(), diagonalFL.getYpos()));
+                }
+            }
+
+        }
+
+        while (!metPieceFR) {
+            int newYpos = (int) diagonalFR.getYpos() - 1;
+            int newXpos = (int) diagonalFR.getXpos() + 1;
+            if (newYpos < 1 || newXpos > 8) {
+                metPieceFR = true;
+            } else {
+                diagonalFR.setXpos(newXpos);
+                diagonalFR.setYpos(newYpos);
+                if (isPieceOnPosition(diagonalFR) != null) {
+                    if (isPieceOnPosition(diagonalFR).isTeam() != piece.isTeam()) {
+                        possibilities.add(new Position(diagonalFR.getXpos(), diagonalFR.getYpos()));
+                    }
+                    metPieceFR = true;
+                } else {
+                    possibilities.add(new Position(diagonalFR.getXpos(), diagonalFR.getYpos()));
+                }
+            }
+
+        }
+
+        while (!metPieceBL) {
+            int newYpos = (int) diagonalBL.getYpos() + 1;
+            int newXpos = (int) diagonalBL.getXpos() - 1;
+            if (newYpos > 8 || newXpos < 1) {
+                metPieceBL = true;
+            } else {
+                diagonalBL.setXpos(newXpos);
+                diagonalBL.setYpos(newYpos);
+                if (isPieceOnPosition(diagonalBL) != null) {
+                    if (isPieceOnPosition(diagonalBL).isTeam() != piece.isTeam()) {
+                        possibilities.add(new Position(diagonalBL.getXpos(), diagonalBL.getYpos()));
+                    }
+                    metPieceBL = true;
+                } else {
+                    possibilities.add(new Position(diagonalBL.getXpos(), diagonalBL.getYpos()));
+                }
+            }
+
+        }
+        while (!metPieceBR) {
+            int newYpos = (int) diagonalBR.getYpos() + 1;
+            int newXpos = (int) diagonalBR.getXpos() + 1;
+            if (newYpos > 8 || newXpos > 8) {
+                metPieceBR = true;
+            } else {
+                diagonalBR.setXpos(newXpos);
+                diagonalBR.setYpos(newYpos);
+                if (isPieceOnPosition(diagonalBR) != null) {
+                    if (isPieceOnPosition(diagonalBR).isTeam() != piece.isTeam()) {
+                        possibilities.add(new Position(diagonalBR.getXpos(), diagonalBR.getYpos()));
+                    }
+                    metPieceBR = true;
+                } else {
+                    possibilities.add(new Position(diagonalBR.getXpos(), diagonalBR.getYpos()));
+                }
+            }
+
+        }
+
+        //front moves
+        while (!metPieceFront) {
+            int newYpos = (int) front.getYpos() - 1;
+            if (newYpos < 1) {
+                metPieceFront = true;
+            } else {
+                front.setYpos(newYpos);
+                if (isPieceOnPosition(front) != null) {
+                    if (isPieceOnPosition(front).isTeam() != piece.isTeam()) {
+                        possibilities.add(new Position(front.getXpos(), front.getYpos()));
+                    }
+                    metPieceFront = true;
+                } else {
+                    possibilities.add(new Position(front.getXpos(), front.getYpos()));
+                }
+            }
+
+        }
+
+        //back moves
+        while (!metPieceBack) {
+            int newYpos = (int) back.getYpos() + 1;
+            if (newYpos > 8) {
+                metPieceBack = true;
+            } else {
+                back.setYpos(newYpos);
+                if (isPieceOnPosition(back) != null) {
+                    if (isPieceOnPosition(back).isTeam() != piece.isTeam()) {
+                        possibilities.add(new Position(back.getXpos(), back.getYpos()));
+                    }
+                    metPieceBack = true;
+                } else {
+                    possibilities.add(new Position(back.getXpos(), back.getYpos()));
+                }
+            }
+
+        }
+
+        //right
+        while (!metPieceRight) {
+            int newXpos = (int) Right.getXpos() + 1;
+            if (newXpos > 8) {
+                metPieceRight = true;
+            } else {
+                Right.setXpos(newXpos);
+                if (isPieceOnPosition(Right) != null) {
+                    if (isPieceOnPosition(Right).isTeam() != piece.isTeam()) {
+                        possibilities.add(new Position(Right.getXpos(), Right.getYpos()));
+                    }
+                    metPieceRight = true;
+                } else {
+                    possibilities.add(new Position(Right.getXpos(), Right.getYpos()));
+                }
+            }
+
+        }
+
+        //left
+        while (!metPieceLeft) {
+            int newXpos = (int) left.getXpos() - 1;
+            if (newXpos < 1) {
+                metPieceLeft = true;
+            } else {
+                left.setXpos(newXpos);
+                if (isPieceOnPosition(left) != null) {
+                    if (isPieceOnPosition(left).isTeam() != piece.isTeam()) {
+                        possibilities.add(new Position(left.getXpos(), left.getYpos()));
+                    }
+                    metPieceLeft = true;
+                } else {
+                    possibilities.add(new Position(left.getXpos(), left.getYpos()));
+                }
+            }
+
+        }
+        return possibilities;
+    }
+
+    private ArrayList<Position> knightMoves(Piece piece) {
+        ArrayList<Position> possibilities = new ArrayList<>();
+        ArrayList<Position> pre = new ArrayList<>();
+        
+//        Position p = new Position(6, 4);
+        Position p = piece.getPos();
+        Position left1 = new Position(p.getXpos() - 2, p.getYpos() - 1);
+        Position left2 = new Position(p.getXpos() - 2, p.getYpos() + 1);
+        Position left3 = new Position(p.getXpos() - 1, p.getYpos() + 2);
+        Position left4 = new Position(p.getXpos() - 1, p.getYpos() - 2);
+        Position right1 = new Position(p.getXpos() + 2, p.getYpos() + 1);
+        Position right2 = new Position(p.getXpos() + 2, p.getYpos() - 1);
+        Position right3 = new Position(p.getXpos() + 1, p.getYpos() - 2);
+        Position right4 = new Position(p.getXpos() + 1, p.getYpos() + 2);
+
+
+        pre.add(right1);
+        pre.add(right2);
+        pre.add(right3);
+        pre.add(right4);
+        pre.add(left1);
+        pre.add(left2);
+        pre.add(left3);
+        pre.add(left4);
+        
+        for(Position pos: pre){
+            if(pos.getXpos() < 1 || pos.getXpos() > 8 || pos.getYpos() < 1 || pos.getYpos() > 8){
+                System.out.println("this pos is not acceptable");
+            }else{
+                if(isPieceOnPosition(pos) != null){
+                    if (isPieceOnPosition(pos).isTeam() != piece.isTeam()){
+                        possibilities.add(pos);
+                    } 
+                }else possibilities.add(pos);
+            }
+        }
+
+        return possibilities;
     }
 
     private void removeDeadElements() throws IllegalArgumentException {
