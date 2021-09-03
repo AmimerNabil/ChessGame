@@ -77,7 +77,10 @@ public class GameController {
     private Color colorBefore;
     ArrayList<Position> positions;
 
+    private ArrayList<Piece> pieceThatPutInCheck;
+
     private boolean turn;
+    private boolean check;
 
     AnimationTimer timer;
 
@@ -86,6 +89,9 @@ public class GameController {
         createBlackPieces();
         createWhitePieces();
         turn = false;
+        check = false;
+
+        pieceThatPutInCheck = new ArrayList<>();
 
         timer = new AnimationTimer() {
             double old = -1;
@@ -112,7 +118,7 @@ public class GameController {
         try {
             removeDeadElements();
         } catch (Exception e) {
-            System.out.println("A piece has been eatten");
+//            System.out.println("A piece has been eatten");
             System.out.println(e);
         }
 
@@ -260,15 +266,26 @@ public class GameController {
                     indexOfSquare = getIndexOfSquare(initialPosition.getXpos(), initialPosition.getYpos());
                     colorBefore = (Color) board.getSquares().get(indexOfSquare).getFill();
                     board.getSquares().get(indexOfSquare).setFill(Color.GOLD);
+                    positions = new ArrayList<>();
+                    positions = handleMovement(movingPiece);
 
-                    handleMovement(movingPiece);
+                    if (movingPiece.getType() == Type.KING) {
+                        for (Piece p : pieceThatPutInCheck) {
+                            for (Position pos : handleMovement(p)) {
+                                if (positions.contains(pos)) {
+                                    positions.remove(pos);
+                                }
+                            }
+                        }
+                    }
+
+                    paintPossiblePosGre(positions);
                     initialX = movingPiece.getPosX() + 25;
                     initialY = movingPiece.getPosY() + 29;
 
                     initialTranslateX = 0;
                     initialTranslateY = 0;
                 }
-
             } else {
                 movingPiece = null;
             }
@@ -293,7 +310,7 @@ public class GameController {
         double posY = 0;
         if (movingPiece != null && movingPiece.isTeam() == turn) {
             Position pos = getClickPositionPosition(e.getX(), e.getY());
-
+            Position initialPos = movingPiece.getPos();
             if (pos.getXpos() != 1000) {
                 board.getSquares().get(indexOfSquare).setFill(colorBefore);
                 posX = board.getXBoardPosition((int) pos.getXpos() - 1, (int) pos.getYpos() - 1);
@@ -301,18 +318,15 @@ public class GameController {
                 if (movingPiece.getType() == Type.QUEEN || movingPiece.getType() == Type.KING || movingPiece.getType() == Type.KNIGHT) {
                     posX -= 9;
                 }
+
                 for (Position p : positions) {
                     //this is to figure out if we have left the piece in a possible possition
                     if (p.equals(pos)) {
                         correctMove = true;
                         //this is to handle what happens if there is a piece at this position. 
                         if (isPieceOnPosition(pos) != null) {
-//                            if (isPieceOnPosition(pos).isTeam() == movingPiece.isTeam()) {
-//                                correctMove = false;
-//                            } else {
                             isPieceOnPosition(pos).setIsEaten(true);
                             isPieceOnPosition(pos).setVisible(false);
-//                            }
                         }
                     }
                 }
@@ -320,15 +334,36 @@ public class GameController {
 
             movingPiece.setTranslateX(0);
             movingPiece.setTranslateY(0);
+
             if (correctMove) {
                 movingPiece.setPos(pos);
                 movingPiece.setPosX((int) posX);
                 movingPiece.setPosY((int) posY);
                 movingPiece.setLayoutX(posX);
                 movingPiece.setLayoutY(posY);
+                boolean wasItFirstMove = movingPiece.isFirstMove();
                 movingPiece.setFirstMove(false);
                 turn = !turn;
-
+                
+                isKingInCheck();
+                
+                if (check) {
+                    boolean whichKing;
+                    if (kingB.isIsInCheck()) {
+                        whichKing = true;
+                    } else {
+                        whichKing = false;
+                    }
+                    if (movingPiece.isTeam() == whichKing) {
+                        movingPiece.setPos(initialPos);
+                        movingPiece.setPosX((int) initialX - 25);
+                        movingPiece.setPosY((int) initialY - 29);
+                        movingPiece.setLayoutX((int) initialX - 25);
+                        movingPiece.setLayoutY((int) initialY - 29);
+                        movingPiece.setFirstMove(wasItFirstMove);
+                        turn = !turn;
+                    }
+                }
             } else {
                 movingPiece.setPosX((int) initialX - 25);
                 movingPiece.setPosY((int) initialY - 29);
@@ -342,33 +377,90 @@ public class GameController {
 
     }
 
-    private void handleMovement(Piece piece) {
-        positions = new ArrayList<>();
+    private void isKingInCheck() {
+        ArrayList<Position> possibleMovesAfterMove = new ArrayList<>();
+        
+        if (turn) {
+            for (Piece p : getAllWhitePieces()) {
+                possibleMovesAfterMove = handleMovement(p);
+                for (Position position : possibleMovesAfterMove) {
+                    if (isPieceOnPosition(position) != null) {
+                        if (isPieceOnPosition(position).getType() == Type.KING && isPieceOnPosition(position).isTeam() != p.isTeam()) {
+                            if (!pieceThatPutInCheck.contains(p)) {
+                                pieceThatPutInCheck.add(p);
+                            }
+                            check = true;
+                            kingB.setIsInCheck(true);
+                            break;
+                        } else {
+                            if (pieceThatPutInCheck.contains(p)) {
+                                pieceThatPutInCheck.remove(p);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        } else {
+            System.out.println("this is happening");
+            for (Piece p : getAllBlackPieces()) {
+                possibleMovesAfterMove = handleMovement(p);
+                for (Position position : possibleMovesAfterMove) {
+                    if (isPieceOnPosition(position) != null) {
+                        if (isPieceOnPosition(position).getType() == Type.KING && isPieceOnPosition(position).isTeam() != p.isTeam()) {
+                            if (!pieceThatPutInCheck.contains(p)) {
+                                pieceThatPutInCheck.add(p);
+                            }
+                            check = true;
+                            kingW.setIsInCheck(true);
+                            break;
+                        } else {
+                            if (pieceThatPutInCheck.contains(p)) {
+                                pieceThatPutInCheck.remove(p);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        System.out.println(kingB.isIsInCheck());
+        System.out.println(kingW.isIsInCheck());
 
-        int index;
+        if (pieceThatPutInCheck.isEmpty()) {
+            check = false;
+            kingB.setIsInCheck(check);
+            kingW.setIsInCheck(check);
+        }
+    }
+
+    private ArrayList<Position> handleMovement(Piece piece) {
+
         switch (piece.getType()) {
             case PAWN:
-                positions = pawnMoves(piece);
-                break;
+                return pawnMoves(piece);
             case ROOK:
-                positions = rookMoves(piece);
-                break;
+                return rookMoves(piece);
+
             case KNIGHT:
-                positions = knightMoves(piece);
-                break;
+                return knightMoves(piece);
+
             case BISHOP:
-                positions = bishopMoves(piece);
-                break;
+                return bishopMoves(piece);
+
             case QUEEN:
-                positions = queenMoves(piece);
-                break;
+                return queenMoves(piece);
+
             case KING:
-                positions = kingMoves(piece);
-                break;
+                return kingMoves(piece);
             default:
-
+                return null;
         }
+    }
 
+    private void paintPossiblePosGre(ArrayList<Position> pos) {
+        int index = 0;
         for (Position p : positions) {
             index = getIndexOfSquare(p.getXpos(), p.getYpos());
             board.getSquares().get(index).setFill(Color.GREY);
@@ -439,7 +531,7 @@ public class GameController {
         }
 
         if (isPieceOnPosition(front2) != null) {
-            if (positions.contains(front2)) {
+            if (possiblePos.contains(front2)) {
                 possiblePos.remove(front2);
             }
         }
@@ -990,7 +1082,7 @@ public class GameController {
     private ArrayList<Position> knightMoves(Piece piece) {
         ArrayList<Position> possibilities = new ArrayList<>();
         ArrayList<Position> pre = new ArrayList<>();
-        
+
 //        Position p = new Position(6, 4);
         Position p = piece.getPos();
         Position left1 = new Position(p.getXpos() - 2, p.getYpos() - 1);
@@ -1002,7 +1094,6 @@ public class GameController {
         Position right3 = new Position(p.getXpos() + 1, p.getYpos() - 2);
         Position right4 = new Position(p.getXpos() + 1, p.getYpos() + 2);
 
-
         pre.add(right1);
         pre.add(right2);
         pre.add(right3);
@@ -1011,16 +1102,17 @@ public class GameController {
         pre.add(left2);
         pre.add(left3);
         pre.add(left4);
-        
-        for(Position pos: pre){
-            if(pos.getXpos() < 1 || pos.getXpos() > 8 || pos.getYpos() < 1 || pos.getYpos() > 8){
-                System.out.println("this pos is not acceptable");
-            }else{
-                if(isPieceOnPosition(pos) != null){
-                    if (isPieceOnPosition(pos).isTeam() != piece.isTeam()){
+
+        for (Position pos : pre) {
+            if (pos.getXpos() < 1 || pos.getXpos() > 8 || pos.getYpos() < 1 || pos.getYpos() > 8) {
+            } else {
+                if (isPieceOnPosition(pos) != null) {
+                    if (isPieceOnPosition(pos).isTeam() != piece.isTeam()) {
                         possibilities.add(pos);
-                    } 
-                }else possibilities.add(pos);
+                    }
+                } else {
+                    possibilities.add(pos);
+                }
             }
         }
 

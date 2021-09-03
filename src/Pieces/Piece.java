@@ -29,6 +29,8 @@ public class Piece extends ImageView{
     //if false = white, if true = black
     private boolean team;
     private boolean isEaten;
+    
+    private boolean isInCheck;
         
     //Adjustments 
     private final int offsetKingQueenKnight = 9;
@@ -48,6 +50,7 @@ public class Piece extends ImageView{
         image = new Image(path);
         imageAfter = new Image(path, image.getWidth()*0.65, image.getHeight()*0.65, false, true);
         setImage(imageAfter);
+        isInCheck = false;
         
         //creating an array for its position
         
@@ -154,6 +157,14 @@ public class Piece extends ImageView{
             return false;
         }
         return true;
+    }
+
+    public boolean isIsInCheck() {
+        return isInCheck;
+    }
+
+    public void setIsInCheck(boolean isInCheck) {
+        this.isInCheck = isInCheck;
     }
 
 
